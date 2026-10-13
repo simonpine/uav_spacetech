@@ -1,0 +1,106 @@
+# Tuning for vtol_control/flight_controller.
+#
+# Gains in the rate loops are in 1/s: the loop output is an angular
+# acceleration and the node multiplies by the axis inertia (Ixx 0.384,
+# Iyy 0.565, Izz 0.890 kg m^2) to get a moment. So rate_roll_p = 14 means
+# "14 rad/s^2 of roll acceleration per rad/s of rate error", i.e. a ~14 rad/s
+# rate-loop bandwidth. The airframe can do 15 rad/s^2 in roll on differential
+# thrust alone, so these numbers are inside what the effectors can deliver.
+
+/vtol_flight_controller:
+  ros__parameters:
+    use_sim_time: true
+
+    # ---- attitude and rate loops -------------------------------------------
+    att_p_roll: 7.0            # outer attitude P, must stay well under rate_*_p
+    att_p_pitch: 6.0
+    rate_roll_p: 14.0
+    rate_roll_i: 9.0
+    rate_roll_d: 0.55
+    rate_pitch_p: 13.0
+    rate_pitch_i: 8.0
+    rate_pitch_d: 0.55
+    rate_yaw_p: 7.0
+    rate_yaw_i: 3.0
+    rate_yaw_d: 0.15
+    max_rate_roll: 3.5
+    max_rate_pitch: 2.5
+    max_rate_yaw: 2.0
+    # Moment ceilings, N*m. Roll on differential thrust maxes out near 13 N*m
+    # and the rear tilt gives about 5.8 N*m of yaw, so these leave headroom.
+    moment_limit_x: 8.0
+    moment_limit_y: 10.0
+    moment_limit_z: 5.5
+
+    # ---- how much the pilot is allowed to ask for ---------------------------
+    max_bank_mc: 0.40          # rad, ~23 deg: enough to translate briskly
+    max_pitch_mc: 0.35
+    max_bank_fw: 0.80          # rad, ~46 deg
+    max_pitch_fw: 0.45
+    max_yaw_rate_mc: 1.6       # rad/s
+    max_yaw_rate_fw: 1.0
+    max_climb_rate: 3.5        # m/s
+    throttle_slew: 0.55        # throttle lever travel per second in AIRPLANE
+
+    # ---- vertical loop ------------------------------------------------------
+    alt_p: 1.1                 # m/s of climb demand per metre of altitude error
+    vz_p: 3.2
+    vz_i: 1.8
+    vz_d: 0.10
+    accel_limit_up: 9.0        # m/s^2, T/W is 2.0 so ~9.8 is the hard ceiling
+    accel_limit_down: 6.0
+    # Once the wing carries the aircraft, altitude is held with PITCH instead of
+    # thrust. These are deliberately much gentler than the pilot's own pitch
+    # authority (max_pitch_fw): this airframe's drag model is cd = cda*alpha with
+    # no parasite term, so drag FALLS with speed and a steep recovery dive runs
+    # away. A 26 deg dive to recover 4 m of altitude reached 38 m/s and hit the
+    # ground; 0.20 rad and 2.5 m/s keep it civilised.
+    fw_alt_p: 0.25             # m/s of climb demand per metre of error
+    fw_alt_pitch_p: 0.085      # rad of nose-up per m/s of climb-rate error
+    fw_max_climb: 2.5          # m/s
+    fw_pitch_limit: 0.20       # rad, ~11 deg
+
+    # ---- AIRPLANE airspeed hold ---------------------------------------------
+    # R/F trims a TARGET AIRSPEED, not a raw throttle. Same reason as above: with
+    # no parasite drag a fixed throttle has no stable trim speed, so the aircraft
+    # either creeps towards stall or runs away. The PI also protects both ends of
+    # the envelope without the pilot managing a lever.
+    v_target_default: 20.0     # m/s, stall is 12.2
+    v_target_min: 14.0
+    v_target_max: 30.0
+    v_target_slew: 4.0         # m/s of target per second of held key
+    speed_p: 0.055
+    speed_i: 0.075
+
+    # ---- transition schedule ------------------------------------------------
+    # The nacelles are scheduled on AIRSPEED, not on a timer: tilt only reaches
+    # 90 deg once the aircraft is fast enough for the wing to hold it up. Stall
+    # is 12.2 m/s, so v_trans_full sits comfortably above it.
+    v_trans_start: 2.0
+    v_trans_full: 19.0
+    tilt_trans_min: 0.30       # rad floor, otherwise there is no forward thrust
+    tilt_rate_fwd: 0.50        # rad/s
+    tilt_rate_back: 0.45
+    v_min_fixedwing: 15.0      # airspeed gate for declaring AIRPLANE
+    v_cruise: 21.0             # auto-throttle target while transitioning
+    v_aero_full: 16.0          # airspeed at which surfaces take the full share
+    # Fixed-wing flight at 20 m/s needs room. Transitioning at 15 m AGL means a
+    # single 15 m altitude excursion is a crash, so the gates sit much higher.
+    trans_min_altitude: 25.0   # refuse to go out below this AGL
+    fw_min_altitude: 15.0      # auto back-transition below this AGL
+    trans_throttle_p: 0.065
+    trans_throttle_ff: 0.50
+
+    # ---- automation ---------------------------------------------------------
+    takeoff_altitude: 40.0     # T climbs straight to a transition-ready height
+    takeoff_climb_rate: 3.0
+    # Landing descent is scheduled on height: land_descent_slope * AGL, clamped
+    # between the min and max. A fixed rate turned a 56 m approach into 52 s.
+    land_descent_rate: 3.0     # m/s ceiling
+    land_descent_min: 0.45     # m/s near the ground
+    land_descent_slope: 0.35   # m/s of descent per metre of AGL
+    ground_clearance: 0.24     # base_link height with the skids on the ground
+
+    # ---- housekeeping -------------------------------------------------------
+    input_timeout: 1.5         # s; sticks centre if the teleop terminal dies
+    status_rate: 10.0

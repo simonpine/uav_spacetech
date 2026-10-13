@@ -1,0 +1,506 @@
+<?xml version="1.0"?>
+<!--
+  vtol_tiltrotor.urdf.xacro   -   "SNOOP-style" tri-motor tiltrotor VTOL
+
+  Layout taken from the Cannon SNOOP 18:
+    * two front rotors on booms projecting forward of the wing leading edge.
+      They tilt about the pitch axis: 0 rad = hover, pi/2 = cruise.
+    * one rear rotor on a pylon over the tail boom.  It tilts LEFT/RIGHT about
+      the roll axis (+-30 deg) - this is what produces yaw in hover, exactly
+      like a tricopter tail servo.  It does NOT tilt for transition.
+    * V-tail (ruddervators), pod fuselage, slim tail boom, four landing skids.
+
+  Published SNOOP 18 numbers used as targets:
+      wingspan 1700 mm, frame length 1310 mm, MTOW 5.5 kg.
+
+  Frame convention: x forward, y left, z up.  base_link origin is the design CG.
+-->
+<robot name="vtol_tiltrotor" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:arg name="use_gazebo" default="true"/>
+  <!-- "fortress" = ign-gazebo 6 / ROS 2 Humble, "harmonic" = gz-sim 8 / Jazzy -->
+  <xacro:arg name="gz_flavor" default="fortress"/>
+
+  <!-- ============================ PARAMETERS ============================ -->
+  <!-- Fuselage pod: nose at x=+0.55, pod ends at x=-0.20 -->
+  <xacro:property name="pod_len"    value="0.75"/>
+  <xacro:property name="pod_w"      value="0.150"/>
+  <xacro:property name="pod_h"      value="0.170"/>
+  <xacro:property name="pod_x"      value="0.175"/>
+  <xacro:property name="pod_mass"   value="2.60"/>     <!-- incl. battery + payload -->
+  <xacro:property name="pod_cg_x"   value="0.0"/>      <!-- set below by trim -->
+
+  <!-- Tail boom: from x=-0.20 back to x=-0.80 -->
+  <xacro:property name="tb_r"       value="0.018"/>
+  <xacro:property name="tb_fwd"     value="-0.20"/>
+  <xacro:property name="tb_aft"     value="-0.76"/>
+  <xacro:property name="tb_len"     value="${tb_fwd - tb_aft}"/>
+  <xacro:property name="tb_xc"      value="${(tb_fwd + tb_aft)/2.0}"/>
+  <xacro:property name="tb_mass"    value="0.15"/>
+
+  <!-- Wing: 1.70 m span, tapered, raked tips -->
+  <xacro:property name="span"       value="1.70"/>
+  <xacro:property name="root_chord" value="0.265"/>
+  <xacro:property name="tip_chord"  value="0.170"/>
+  <xacro:property name="wing_t"     value="0.028"/>
+  <xacro:property name="wing_x"     value="-0.010"/>
+  <xacro:property name="wing_z"     value="0.090"/>
+  <xacro:property name="panel_span" value="0.50"/>     <!-- inboard panel, per side -->
+  <xacro:property name="tip_span"   value="0.31"/>     <!-- outboard raked panel -->
+  <xacro:property name="panel_ac_y" value="0.29"/>     <!-- inboard panel centroid -->
+  <xacro:property name="dihedral"   value="0.13"/>     <!-- tip panel, ~7.5 deg -->
+  <xacro:property name="panel_mass" value="0.36"/>
+  <xacro:property name="tip_mass"   value="0.14"/>
+  <xacro:property name="panel_area" value="0.123"/>    <!-- 0.246 chord x 0.50 -->
+  <xacro:property name="tip_area"   value="0.058"/>
+
+  <!-- Ailerons: on the outboard trailing edge of the inboard panel -->
+  <xacro:property name="ail_chord"  value="0.065"/>
+  <xacro:property name="ail_span"   value="0.34"/>
+  <xacro:property name="ail_mass"   value="0.025"/>
+
+  <!-- Front rotor booms -->
+  <xacro:property name="boom_y"     value="0.360"/>
+  <xacro:property name="boom_r"     value="0.013"/>
+  <xacro:property name="tilt_x"     value="0.360"/>    <!-- tilt axis / rotor station -->
+  <xacro:property name="boom_aft_x" value="0.060"/>    <!-- boom root, inside the wing -->
+  <xacro:property name="boom_len"   value="${tilt_x - boom_aft_x}"/>
+  <xacro:property name="boom_xc"    value="${(tilt_x + boom_aft_x)/2.0}"/>
+  <xacro:property name="boom_z"     value="0.070"/>
+  <xacro:property name="fboom_mass" value="0.10"/>
+
+  <!-- V-tail -->
+  <xacro:property name="vt_x"       value="-0.720"/>
+  <xacro:property name="vt_z"       value="0.020"/>
+  <xacro:property name="vt_span"    value="0.320"/>
+  <xacro:property name="vt_chord"   value="0.180"/>
+  <xacro:property name="vt_t"       value="0.012"/>
+  <xacro:property name="vt_dihed"   value="0.663"/>    <!-- 38 deg -->
+  <xacro:property name="vt_mass"    value="0.09"/>
+  <xacro:property name="vt_area"    value="0.0576"/>
+  <xacro:property name="rv_chord"   value="0.062"/>
+  <xacro:property name="rv_mass"    value="0.03"/>
+
+  <!-- Propulsion -->
+  <xacro:property name="nac_len"    value="0.150"/>
+  <xacro:property name="nac_r"      value="0.028"/>
+  <xacro:property name="nac_mass"   value="0.30"/>
+  <xacro:property name="prop_r"     value="0.190"/>    <!-- 15 in -->
+  <xacro:property name="prop_t"     value="0.008"/>
+  <xacro:property name="prop_mass"  value="0.025"/>
+  <xacro:property name="rear_x"     value="-0.540"/>
+  <xacro:property name="pylon_h"    value="0.150"/>
+  <xacro:property name="pylon_mass" value="0.16"/>
+  <xacro:property name="rseat_mass" value="0.22"/>
+
+  <xacro:property name="tilt_min"   value="-0.17"/>    <!-- slight aft tilt allowed -->
+  <xacro:property name="tilt_max"   value="1.5708"/>
+  <xacro:property name="ytilt_max"  value="0.524"/>    <!-- rear rotor +-30 deg -->
+
+  <!-- Landing skids -->
+  <xacro:property name="skid_f_drop" value="0.310"/>
+  <xacro:property name="skid_a_drop" value="0.155"/>
+
+  <!-- ============================ MATERIALS ============================ -->
+  <material name="matte_black"><color rgba="0.09 0.09 0.10 1.0"/></material>
+  <material name="dark_grey">  <color rgba="0.20 0.21 0.22 1.0"/></material>
+  <material name="carbon">     <color rgba="0.05 0.05 0.06 1.0"/></material>
+  <material name="prop_tan">   <color rgba="0.60 0.53 0.36 1.0"/></material>
+  <material name="hi_vis">     <color rgba="0.95 0.42 0.05 1.0"/></material>
+
+  <!-- ========================= INERTIA MACROS ========================== -->
+  <xacro:macro name="box_inertial" params="m x y z *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${m}"/>
+      <inertia ixx="${m*(y*y+z*z)/12.0}" ixy="0.0" ixz="0.0"
+               iyy="${m*(x*x+z*z)/12.0}" iyz="0.0"
+               izz="${m*(x*x+y*y)/12.0}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="cyl_inertial" params="m r l *origin">
+    <inertial>
+      <xacro:insert_block name="origin"/>
+      <mass value="${m}"/>
+      <inertia ixx="${m*(3*r*r+l*l)/12.0}" ixy="0.0" ixz="0.0"
+               iyy="${m*(3*r*r+l*l)/12.0}" iyz="0.0"
+               izz="${m*r*r/2.0}"/>
+    </inertial>
+  </xacro:macro>
+
+  <xacro:macro name="disc_inertial" params="m r">
+    <inertial>
+      <mass value="${m}"/>
+      <inertia ixx="${m*r*r/4.0}" ixy="0" ixz="0"
+               iyy="${m*r*r/4.0}" iyz="0" izz="${m*r*r/2.0}"/>
+    </inertial>
+  </xacro:macro>
+
+  <!-- Two-blade propeller: bar-shaped blades with real pitch, hub, and a
+       full-disc collision (standard practice - keeps the sim conservative). -->
+  <xacro:macro name="prop_visual" params="pitch:=0.26">
+    <visual>
+      <origin xyz="0 ${prop_r/2.0} 0" rpy="0 ${pitch} 0"/>
+      <geometry><box size="0.038 ${prop_r} 0.005"/></geometry>
+      <material name="prop_tan"/>
+    </visual>
+    <visual>
+      <origin xyz="0 ${-prop_r/2.0} 0" rpy="0 ${-pitch} 0"/>
+      <geometry><box size="0.038 ${prop_r} 0.005"/></geometry>
+      <material name="prop_tan"/>
+    </visual>
+    <visual>
+      <geometry><cylinder radius="0.016" length="0.022"/></geometry>
+      <material name="matte_black"/>
+    </visual>
+    <collision>
+      <geometry><cylinder radius="${prop_r}" length="${prop_t}"/></geometry>
+    </collision>
+  </xacro:macro>
+
+  <!-- ========================= FUSELAGE + TAIL BOOM ===================== -->
+  <link name="base_link">
+    <!-- main pod -->
+    <visual>
+      <origin xyz="${pod_x} 0 0"/>
+      <geometry><box size="${pod_len} ${pod_w} ${pod_h}"/></geometry>
+      <material name="matte_black"/>
+    </visual>
+    <!-- rounded nose -->
+    <visual>
+      <origin xyz="${pod_x + pod_len/2.0} 0 0"/>
+      <geometry><sphere radius="${pod_h/2.0}"/></geometry>
+      <material name="matte_black"/>
+    </visual>
+    <!-- aft fairing blending pod into the boom -->
+    <visual>
+      <origin xyz="${tb_fwd - 0.02} 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="0.055" length="0.10"/></geometry>
+      <material name="matte_black"/>
+    </visual>
+    <!-- tail boom -->
+    <visual>
+      <origin xyz="${tb_xc} 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="${tb_r}" length="${tb_len}"/></geometry>
+      <material name="carbon"/>
+    </visual>
+
+    <collision>
+      <origin xyz="${pod_x} 0 0"/>
+      <geometry><box size="${pod_len} ${pod_w} ${pod_h}"/></geometry>
+    </collision>
+    <collision>
+      <origin xyz="${tb_xc} 0 0" rpy="0 1.5708 0"/>
+      <geometry><cylinder radius="${tb_r}" length="${tb_len}"/></geometry>
+    </collision>
+
+    <!-- Pod mass. The x offset is chosen so the WHOLE-AIRFRAME CoM lands on
+         x=0; it represents battery + avionics packed forward in the pod. -->
+    <xacro:box_inertial m="${pod_mass}" x="${pod_len}" y="${pod_w}" z="${pod_h}">
+      <origin xyz="0.0759 0 0"/>
+    </xacro:box_inertial>
+  </link>
+
+  <link name="tail_boom_mass">
+    <xacro:cyl_inertial m="${tb_mass}" r="${tb_r}" l="${tb_len}">
+      <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+    </xacro:cyl_inertial>
+  </link>
+  <joint name="tail_boom_joint" type="fixed">
+    <parent link="base_link"/><child link="tail_boom_mass"/>
+    <origin xyz="${tb_xc} 0 0"/>
+  </joint>
+
+  <!-- ================================ IMU =============================== -->
+  <link name="imu_link">
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="1e-7" ixy="0" ixz="0" iyy="1e-7" iyz="0" izz="1e-7"/>
+    </inertial>
+  </link>
+  <joint name="imu_joint" type="fixed">
+    <parent link="base_link"/><child link="imu_link"/>
+    <origin xyz="0.10 0 0.01"/>
+  </joint>
+
+  <!-- ============================== WING =============================== -->
+  <!-- Link frame = half-panel aerodynamic centre, so LiftDrag <cp> = 0 0 0 -->
+  <xacro:macro name="wing_panel" params="side reflect">
+    <link name="wing_${side}">
+      <visual>
+        <origin xyz="-0.004 0 0"/>
+        <geometry><box size="0.246 ${panel_span} ${wing_t}"/></geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <origin xyz="-0.004 0 0"/>
+        <geometry><box size="0.246 ${panel_span} ${wing_t}"/></geometry>
+      </collision>
+      <xacro:box_inertial m="${panel_mass}" x="0.246" y="${panel_span}" z="${wing_t}">
+        <origin xyz="0 0 0"/>
+      </xacro:box_inertial>
+    </link>
+    <joint name="wing_${side}_joint" type="fixed">
+      <parent link="base_link"/><child link="wing_${side}"/>
+      <origin xyz="${wing_x} ${reflect*panel_ac_y} ${wing_z}"/>
+    </joint>
+
+    <!-- raked outboard tip panel -->
+    <link name="tip_${side}">
+      <visual>
+        <origin xyz="-0.01 0 0"/>
+        <geometry><box size="0.195 ${tip_span} ${wing_t*0.85}"/></geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <xacro:box_inertial m="${tip_mass}" x="0.195" y="${tip_span}" z="${wing_t}">
+        <origin xyz="-0.01 0 0"/>
+      </xacro:box_inertial>
+    </link>
+    <joint name="tip_${side}_joint" type="fixed">
+      <parent link="wing_${side}"/><child link="tip_${side}"/>
+      <origin xyz="-0.020 ${reflect*(panel_span/2.0 + tip_span/2.0)} 0.020"
+              rpy="${reflect*dihedral} 0 0"/>
+    </joint>
+
+    <!-- aileron on the outboard trailing edge of the inboard panel -->
+    <link name="aileron_${side}">
+      <visual>
+        <origin xyz="${-ail_chord/2.0} 0 0"/>
+        <geometry><box size="${ail_chord} ${ail_span} ${wing_t*0.75}"/></geometry>
+        <material name="carbon"/>
+      </visual>
+      <xacro:box_inertial m="${ail_mass}" x="${ail_chord}" y="${ail_span}" z="${wing_t}">
+        <origin xyz="${-ail_chord/2.0} 0 0"/>
+      </xacro:box_inertial>
+    </link>
+    <joint name="aileron_${side}_joint" type="revolute">
+      <parent link="wing_${side}"/><child link="aileron_${side}"/>
+      <origin xyz="-0.127 ${reflect*0.07} 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-0.44" upper="0.44" effort="6.0" velocity="10.0"/>
+      <dynamics damping="0.05" friction="0.01"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:wing_panel side="left"  reflect="1"/>
+  <xacro:wing_panel side="right" reflect="-1"/>
+
+  <!-- ======================== V-TAIL (RUDDERVATORS) ===================== -->
+  <!-- Each panel gets its own rolled frame, so its local +z IS the panel
+       normal and LiftDrag <upward>0 0 1</upward> is correct as written. -->
+  <xacro:macro name="vtail" params="side reflect">
+    <link name="vtail_${side}">
+      <visual>
+        <origin xyz="0 ${reflect*vt_span/2.0} 0"/>
+        <geometry><box size="${vt_chord} ${vt_span} ${vt_t}"/></geometry>
+        <material name="dark_grey"/>
+      </visual>
+      <collision>
+        <origin xyz="0 ${reflect*vt_span/2.0} 0"/>
+        <geometry><box size="${vt_chord} ${vt_span} ${vt_t}"/></geometry>
+      </collision>
+      <xacro:box_inertial m="${vt_mass}" x="${vt_chord}" y="${vt_span}" z="${vt_t}">
+        <origin xyz="0 ${reflect*vt_span/2.0} 0"/>
+      </xacro:box_inertial>
+    </link>
+    <joint name="vtail_${side}_joint" type="fixed">
+      <parent link="base_link"/><child link="vtail_${side}"/>
+      <origin xyz="${vt_x} 0 ${vt_z}" rpy="${reflect*vt_dihed} 0 0"/>
+    </joint>
+
+    <link name="ruddervator_${side}">
+      <visual>
+        <origin xyz="${-rv_chord/2.0} ${reflect*vt_span*0.45} 0"/>
+        <geometry><box size="${rv_chord} ${vt_span*0.85} ${vt_t*0.8}"/></geometry>
+        <material name="carbon"/>
+      </visual>
+      <xacro:box_inertial m="${rv_mass}" x="${rv_chord}" y="${vt_span*0.85}" z="${vt_t}">
+        <origin xyz="${-rv_chord/2.0} ${reflect*vt_span*0.45} 0"/>
+      </xacro:box_inertial>
+    </link>
+    <joint name="ruddervator_${side}_joint" type="revolute">
+      <parent link="vtail_${side}"/><child link="ruddervator_${side}"/>
+      <origin xyz="${-vt_chord/2.0} 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="-0.52" upper="0.52" effort="6.0" velocity="10.0"/>
+      <dynamics damping="0.05" friction="0.01"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:vtail side="left"  reflect="1"/>
+  <xacro:vtail side="right" reflect="-1"/>
+
+  <!-- ==================== FRONT BOOMS + TILTING ROTORS ================== -->
+  <xacro:macro name="front_unit" params="side reflect">
+    <link name="fboom_${side}">
+      <visual>
+        <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+        <geometry><cylinder radius="${boom_r}" length="${boom_len}"/></geometry>
+        <material name="carbon"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+        <geometry><cylinder radius="${boom_r}" length="${boom_len}"/></geometry>
+      </collision>
+      <xacro:cyl_inertial m="${fboom_mass}" r="${boom_r}" l="${boom_len}">
+        <origin xyz="0 0 0" rpy="0 1.5708 0"/>
+      </xacro:cyl_inertial>
+    </link>
+    <joint name="fboom_${side}_joint" type="fixed">
+      <parent link="base_link"/><child link="fboom_${side}"/>
+      <origin xyz="${boom_xc} ${reflect*boom_y} ${boom_z}"/>
+    </joint>
+
+    <!-- tilt nacelle: 0 rad = rotor axis +z (hover), pi/2 = +x (cruise) -->
+    <link name="nacelle_${side}">
+      <visual>
+        <origin xyz="0 0 ${-nac_len/2.0 + 0.035}"/>
+        <geometry><cylinder radius="${nac_r}" length="${nac_len}"/></geometry>
+        <material name="matte_black"/>
+      </visual>
+      <visual>
+        <origin xyz="0 0 0.035"/>
+        <geometry><sphere radius="${nac_r}"/></geometry>
+        <material name="matte_black"/>
+      </visual>
+      <collision>
+        <origin xyz="0 0 ${-nac_len/2.0 + 0.035}"/>
+        <geometry><cylinder radius="${nac_r}" length="${nac_len}"/></geometry>
+      </collision>
+      <xacro:cyl_inertial m="${nac_mass}" r="${nac_r}" l="${nac_len}">
+        <origin xyz="0 0 ${-nac_len/2.0 + 0.035}"/>
+      </xacro:cyl_inertial>
+    </link>
+    <joint name="tilt_${side}_joint" type="revolute">
+      <parent link="fboom_${side}"/><child link="nacelle_${side}"/>
+      <origin xyz="${boom_len/2.0} 0 0"/>
+      <axis xyz="0 1 0"/>
+      <limit lower="${tilt_min}" upper="${tilt_max}" effort="8.0" velocity="3.0"/>
+      <dynamics damping="0.10" friction="0.02"/>
+    </joint>
+
+    <link name="rotor_${side}">
+      <xacro:prop_visual/>
+      <xacro:disc_inertial m="${prop_mass}" r="${prop_r}"/>
+    </link>
+    <joint name="rotor_${side}_joint" type="continuous">
+      <parent link="nacelle_${side}"/><child link="rotor_${side}"/>
+      <origin xyz="0 0 0.055"/>
+      <axis xyz="0 0 1"/>
+    </joint>
+
+    <!-- forward landing skid hanging off the boom -->
+    <link name="skid_f_${side}">
+      <visual>
+        <origin xyz="0 0 ${-skid_f_drop/2.0}" rpy="0 0.16 0"/>
+        <geometry><cylinder radius="0.006" length="${skid_f_drop}"/></geometry>
+        <material name="carbon"/>
+      </visual>
+      <visual>
+        <origin xyz="0.017 0 ${-skid_f_drop}"/>
+        <geometry><sphere radius="0.013"/></geometry>
+        <material name="hi_vis"/>
+      </visual>
+      <collision>
+        <origin xyz="0.017 0 ${-skid_f_drop}"/>
+        <geometry><sphere radius="0.013"/></geometry>
+      </collision>
+      <xacro:cyl_inertial m="0.05" r="0.006" l="${skid_f_drop}">
+        <origin xyz="0 0 ${-skid_f_drop/2.0}"/>
+      </xacro:cyl_inertial>
+    </link>
+    <joint name="skid_f_${side}_joint" type="fixed">
+      <parent link="fboom_${side}"/><child link="skid_f_${side}"/>
+      <origin xyz="-0.06 0 0"/>
+    </joint>
+
+    <!-- aft landing skid off the pod -->
+    <link name="skid_a_${side}">
+      <visual>
+        <origin xyz="0 ${reflect*0.03} ${-skid_a_drop/2.0}" rpy="${-reflect*0.28} 0 0"/>
+        <geometry><cylinder radius="0.006" length="${skid_a_drop}"/></geometry>
+        <material name="carbon"/>
+      </visual>
+      <visual>
+        <origin xyz="0 ${reflect*0.06} ${-skid_a_drop}"/>
+        <geometry><sphere radius="0.013"/></geometry>
+        <material name="hi_vis"/>
+      </visual>
+      <collision>
+        <origin xyz="0 ${reflect*0.06} ${-skid_a_drop}"/>
+        <geometry><sphere radius="0.013"/></geometry>
+      </collision>
+      <xacro:cyl_inertial m="0.05" r="0.006" l="${skid_a_drop}">
+        <origin xyz="0 ${reflect*0.03} ${-skid_a_drop/2.0}"/>
+      </xacro:cyl_inertial>
+    </link>
+    <joint name="skid_a_${side}_joint" type="fixed">
+      <parent link="base_link"/><child link="skid_a_${side}"/>
+      <origin xyz="-0.14 ${reflect*0.055} ${-pod_h/2.0}"/>
+    </joint>
+  </xacro:macro>
+
+  <xacro:front_unit side="left"  reflect="1"/>
+  <xacro:front_unit side="right" reflect="-1"/>
+
+  <!-- ==================== REAR ROTOR (YAW-TILTING SEAT) ================= -->
+  <link name="rear_pylon">
+    <visual>
+      <origin xyz="0 0 ${pylon_h/2.0}"/>
+      <geometry><box size="0.055 0.028 ${pylon_h}"/></geometry>
+      <material name="matte_black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 ${pylon_h/2.0}"/>
+      <geometry><box size="0.055 0.028 ${pylon_h}"/></geometry>
+    </collision>
+    <xacro:box_inertial m="${pylon_mass}" x="0.055" y="0.028" z="${pylon_h}">
+      <origin xyz="0 0 ${pylon_h/2.0}"/>
+    </xacro:box_inertial>
+  </link>
+  <joint name="rear_pylon_joint" type="fixed">
+    <parent link="base_link"/><child link="rear_pylon"/>
+    <origin xyz="${rear_x} 0 0"/>
+  </joint>
+
+  <!-- Tilt seat: rotates about the ROLL axis to vector thrust sideways.
+       This is the yaw actuator in hover, tricopter-style. -->
+  <link name="rear_seat">
+    <visual>
+      <origin xyz="0 0 0.02"/>
+      <geometry><cylinder radius="${nac_r}" length="0.075"/></geometry>
+      <material name="matte_black"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0.02"/>
+      <geometry><cylinder radius="${nac_r}" length="0.075"/></geometry>
+    </collision>
+    <xacro:cyl_inertial m="${rseat_mass}" r="${nac_r}" l="0.075">
+      <origin xyz="0 0 0.02"/>
+    </xacro:cyl_inertial>
+  </link>
+  <joint name="rear_tilt_joint" type="revolute">
+    <parent link="rear_pylon"/><child link="rear_seat"/>
+    <origin xyz="0 0 ${pylon_h}"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="${-ytilt_max}" upper="${ytilt_max}" effort="6.0" velocity="6.0"/>
+    <dynamics damping="0.05" friction="0.01"/>
+  </joint>
+
+  <link name="rotor_rear">
+    <xacro:prop_visual/>
+    <xacro:disc_inertial m="${prop_mass}" r="${prop_r}"/>
+  </link>
+  <joint name="rotor_rear_joint" type="continuous">
+    <parent link="rear_seat"/><child link="rotor_rear"/>
+    <origin xyz="0 0 0.060"/>
+    <axis xyz="0 0 1"/>
+  </joint>
+
+  <!-- ============================== GAZEBO ============================= -->
+  <xacro:if value="$(arg use_gazebo)">
+    <xacro:include filename="$(find vtol_tiltrotor_description)/urdf/gazebo_$(arg gz_flavor).xacro"/>
+  </xacro:if>
+
+</robot>

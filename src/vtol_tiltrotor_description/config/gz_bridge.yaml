@@ -1,0 +1,100 @@
+# ros_gz_bridge configuration for the SNOOP-style tri-motor tiltrotor.
+#
+#   ros2 run ros_gz_bridge parameter_bridge --ros-args -p config_file:=gz_bridge.yaml
+#
+# Written for ROS 2 Humble / Gazebo Fortress. The "gz.msgs.*" type names are
+# accepted by the Fortress-era bridge as aliases for "ignition.msgs.*", so this
+# one file works on Harmonic too.
+
+# ----------------------------------------------------------------- clock ----
+# Everything downstream runs on use_sim_time, so this has to come across or the
+# controller's dt goes wrong the moment the real-time factor drops below 1.
+- ros_topic_name: "/clock"
+  gz_topic_name: "/clock"
+  ros_type_name: "rosgraph_msgs/msg/Clock"
+  gz_type_name: "gz.msgs.Clock"
+  direction: GZ_TO_ROS
+
+# ------------------------------------------------------------- actuators ----
+# Rotor speeds, order: [0]=front_left, [1]=front_right, [2]=rear
+- ros_topic_name: "/vtol/command/motor_speed"
+  gz_topic_name: "/vtol/command/motor_speed"
+  ros_type_name: "actuator_msgs/msg/Actuators"
+  gz_type_name: "gz.msgs.Actuators"
+  direction: ROS_TO_GZ
+
+# Transition servos: 0.0 = hover, 1.5708 = cruise
+- ros_topic_name: "/vtol/tilt_left/cmd"
+  gz_topic_name: "/vtol/tilt_left/cmd"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/vtol/tilt_right/cmd"
+  gz_topic_name: "/vtol/tilt_right/cmd"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+# YAW servo: tilts the rear rotor sideways, +-0.524 rad. This is the yaw
+# actuator in hover - tricopter style, not a transition servo.
+- ros_topic_name: "/vtol/rear_tilt/cmd"
+  gz_topic_name: "/vtol/rear_tilt/cmd"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/vtol/aileron_left/cmd"
+  gz_topic_name: "/vtol/aileron_left/cmd"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/vtol/aileron_right/cmd"
+  gz_topic_name: "/vtol/aileron_right/cmd"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+# V-tail: elevator = both same sign, rudder = opposite signs
+- ros_topic_name: "/vtol/ruddervator_left/cmd"
+  gz_topic_name: "/vtol/ruddervator_left/cmd"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+- ros_topic_name: "/vtol/ruddervator_right/cmd"
+  gz_topic_name: "/vtol/ruddervator_right/cmd"
+  ros_type_name: "std_msgs/msg/Float64"
+  gz_type_name: "gz.msgs.Double"
+  direction: ROS_TO_GZ
+
+# ----------------------------------------------------------------- state ----
+- ros_topic_name: "/vtol/imu"
+  gz_topic_name: "/vtol/imu"
+  ros_type_name: "sensor_msgs/msg/Imu"
+  gz_type_name: "gz.msgs.IMU"
+  direction: GZ_TO_ROS
+
+# Position and orientation in the world frame. The flight controller uses this
+# for altitude, climb rate and airspeed.
+- ros_topic_name: "/vtol/odom"
+  gz_topic_name: "/vtol/odom"
+  ros_type_name: "nav_msgs/msg/Odometry"
+  gz_type_name: "gz.msgs.Odometry"
+  direction: GZ_TO_ROS
+
+# world -> base_link, straight into /tf so RViz tracks the aircraft.
+- ros_topic_name: "/tf"
+  gz_topic_name: "/vtol/tf"
+  ros_type_name: "tf2_msgs/msg/TFMessage"
+  gz_type_name: "gz.msgs.Pose_V"
+  direction: GZ_TO_ROS
+
+# Measured joint angles: tilt, rear tilt and the four surfaces. Feeds
+# robot_state_publisher so RViz shows the nacelles actually rotating.
+- ros_topic_name: "/joint_states"
+  gz_topic_name: "/world/vtol_field/model/vtol/joint_state"
+  ros_type_name: "sensor_msgs/msg/JointState"
+  gz_type_name: "gz.msgs.Model"
+  direction: GZ_TO_ROS

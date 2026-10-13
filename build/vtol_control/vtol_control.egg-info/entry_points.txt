@@ -1,0 +1,5 @@
+[console_scripts]
+demo_flight = vtol_control.demo_flight:main
+flight_controller = vtol_control.flight_controller:main
+keyboard_teleop = vtol_control.keyboard_teleop:main
+

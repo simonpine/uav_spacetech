@@ -1,0 +1,28 @@
+running develop
+running egg_info
+creating vtol_control.egg-info
+writing vtol_control.egg-info/PKG-INFO
+writing dependency_links to vtol_control.egg-info/dependency_links.txt
+writing entry points to vtol_control.egg-info/entry_points.txt
+writing requirements to vtol_control.egg-info/requires.txt
+writing top-level names to vtol_control.egg-info/top_level.txt
+writing manifest file 'vtol_control.egg-info/SOURCES.txt'
+reading manifest file 'vtol_control.egg-info/SOURCES.txt'
+writing manifest file 'vtol_control.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/ceres/uav/install/vtol_control/lib/python3.10/site-packages/vtol-control.egg-link (link to .)
+Installing demo_flight script to /home/ceres/uav/install/vtol_control/lib/vtol_control
+Installing flight_controller script to /home/ceres/uav/install/vtol_control/lib/vtol_control
+Installing keyboard_teleop script to /home/ceres/uav/install/vtol_control/lib/vtol_control
+
+Installed /home/ceres/uav/build/vtol_control
+running symlink_data
+creating /home/ceres/uav/install/vtol_control/share/ament_index
+creating /home/ceres/uav/install/vtol_control/share/ament_index/resource_index
+creating /home/ceres/uav/install/vtol_control/share/ament_index/resource_index/packages
+symbolically linking /home/ceres/uav/build/vtol_control/resource/vtol_control -> /home/ceres/uav/install/vtol_control/share/ament_index/resource_index/packages
+symbolically linking /home/ceres/uav/build/vtol_control/package.xml -> /home/ceres/uav/install/vtol_control/share/vtol_control
+creating /home/ceres/uav/install/vtol_control/share/vtol_control/launch
+symbolically linking /home/ceres/uav/build/vtol_control/launch/vtol_sim.launch.py -> /home/ceres/uav/install/vtol_control/share/vtol_control/launch
+creating /home/ceres/uav/install/vtol_control/share/vtol_control/config
+symbolically linking /home/ceres/uav/build/vtol_control/config/flight_controller.yaml -> /home/ceres/uav/install/vtol_control/share/vtol_control/config

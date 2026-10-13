@@ -1,0 +1,1 @@
+/home/ceres/uav/build/vtol_tiltrotor_description/ament_cmake_environment_hooks/local_setup.sh

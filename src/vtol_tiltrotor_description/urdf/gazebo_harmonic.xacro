@@ -1,0 +1,229 @@
+<?xml version="1.0"?>
+<!--
+  gazebo_harmonic.xacro
+  Plugin layer for Gazebo Harmonic / gz-sim 8 (ROS 2 Jazzy).
+
+  gazebo_fortress.xacro is this file with
+    "gz-sim-*"           -> "ignition-gazebo-*"
+    "gz::sim::systems::" -> "ignition::gazebo::systems::"
+    "<gz_frame_id>"      -> "<ignition_frame_id>"
+  and nothing else.  Keep the two in step.
+
+  TWO THINGS HERE ARE NOT OBVIOUS, and both were found by actually flying the
+  model.  Change them back and the aircraft stops working, silently.
+
+  1. LiftDrag attaches to base_link, not to the wing and V-tail links.
+     sdformat lumps every fixed-joint child into its parent when it converts URDF
+     to SDF, so wing_left, tip_left, vtail_left and their mirrors do not survive
+     as SDF links and the original per-panel plugins all failed with
+         "Link with name[wing_left] not found. The LiftDrag will not generate
+          forces"
+     i.e. the aircraft had no aerodynamics at all.  Keeping the links alive with
+     <preserveFixedJoint> fixes that error but breaks something worse: the
+     aileron and ruddervator joints then hang off a welded link, and their
+     JointPositionControllers only reach about 7% of a commanded deflection, so
+     the aircraft has no usable pitch or roll control in cruise.
+     Putting all six panels on base_link avoids both problems.  It is physically
+     identical - the panels were rigidly attached anyway - and it keeps the
+     aerodynamic damping intact, because LiftDrag evaluates the airflow at <cp>
+     using the link's angular velocity as well as its linear velocity.
+     The <cp> and <upward> values below are therefore given in the BASE_LINK
+     frame, derived from the same xacro properties the geometry uses, so they
+     follow the geometry if it is edited.
+
+  2. The servos use <use_velocity_commands>.  With the default force-based PID
+     these joints do not reach their setpoints: a 0.30 rad aileron command
+     settled at 0.02 rad.  Velocity commands make them behave like real
+     position-controlled servos, rate-limited by cmd_max, which is set from each
+     joint's own URDF <limit velocity="..."> value.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:property name="ns"          value="vtol"/>
+  <xacro:property name="k_thrust"    value="1.6e-05"/>   <!-- T = k*w^2 [N] -->
+  <xacro:property name="k_moment"    value="0.016"/>
+  <xacro:property name="w_max"       value="1500"/>      <!-- rad/s -->
+  <xacro:property name="air_density" value="1.2041"/>
+
+  <!-- ============================== MOTORS ============================== -->
+  <xacro:macro name="motor" params="joint link direction number">
+    <gazebo>
+      <plugin filename="gz-sim-multicopter-motor-model-system"
+              name="gz::sim::systems::MulticopterMotorModel">
+        <robotNamespace>${ns}</robotNamespace>
+        <jointName>${joint}</jointName>
+        <linkName>${link}</linkName>
+        <turningDirection>${direction}</turningDirection>
+        <timeConstantUp>0.0125</timeConstantUp>
+        <timeConstantDown>0.025</timeConstantDown>
+        <maxRotVelocity>${w_max}</maxRotVelocity>
+        <motorConstant>${k_thrust}</motorConstant>
+        <momentConstant>${k_moment}</momentConstant>
+        <commandSubTopic>command/motor_speed</commandSubTopic>
+        <motorNumber>${number}</motorNumber>
+        <rotorDragCoefficient>8.06428e-05</rotorDragCoefficient>
+        <rollingMomentCoefficient>1.0e-06</rollingMomentCoefficient>
+        <motorType>velocity</motorType>
+        <rotorVelocitySlowdownSim>10</rotorVelocitySlowdownSim>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:motor joint="rotor_left_joint"  link="rotor_left"  direction="ccw" number="0"/>
+  <xacro:motor joint="rotor_right_joint" link="rotor_right" direction="cw"  number="1"/>
+  <xacro:motor joint="rotor_rear_joint"  link="rotor_rear"  direction="ccw" number="2"/>
+
+  <!-- =========================== SERVO JOINTS =========================== -->
+  <!-- vmax mirrors the joint's URDF <limit velocity="..."> so the servo cannot
+       slew faster than the airframe says it can. -->
+  <xacro:macro name="pos_ctrl" params="joint topic p:=30.0 vmax:=8.0">
+    <gazebo>
+      <plugin filename="gz-sim-joint-position-controller-system"
+              name="gz::sim::systems::JointPositionController">
+        <joint_name>${joint}</joint_name>
+        <topic>/${ns}/${topic}</topic>
+        <use_velocity_commands>true</use_velocity_commands>
+        <p_gain>${p}</p_gain>
+        <i_gain>0.0</i_gain>
+        <d_gain>0.0</d_gain>
+        <cmd_max>${vmax}</cmd_max>
+        <cmd_min>${-vmax}</cmd_min>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- transition servos: 0 = hover, pi/2 = cruise -->
+  <xacro:pos_ctrl joint="tilt_left_joint"  topic="tilt_left/cmd"  p="12.0" vmax="3.0"/>
+  <xacro:pos_ctrl joint="tilt_right_joint" topic="tilt_right/cmd" p="12.0" vmax="3.0"/>
+  <!-- YAW servo: the tricopter-style tail tilt, not a transition servo -->
+  <xacro:pos_ctrl joint="rear_tilt_joint"  topic="rear_tilt/cmd"  p="25.0" vmax="6.0"/>
+  <!-- aerodynamic surfaces -->
+  <xacro:pos_ctrl joint="aileron_left_joint"      topic="aileron_left/cmd"      vmax="10.0"/>
+  <xacro:pos_ctrl joint="aileron_right_joint"     topic="aileron_right/cmd"     vmax="10.0"/>
+  <xacro:pos_ctrl joint="ruddervator_left_joint"  topic="ruddervator_left/cmd"  vmax="10.0"/>
+  <xacro:pos_ctrl joint="ruddervator_right_joint" topic="ruddervator_right/cmd" vmax="10.0"/>
+
+  <!-- ============================ AERODYNAMICS ========================== -->
+  <!-- <cp> and <upward> are in the BASE_LINK frame - see note 1 in the header.
+       They are built from the geometry properties, so editing the wing moves the
+       aerodynamic centre with it. -->
+  <xacro:macro name="liftdrag" params="name link:=base_link area cp upward:='0 0 1'
+                                       cla:=4.75 cda:=1.0 a0:=0.05
+                                       alpha_stall:=0.30 cla_stall:=-3.85
+                                       cda_stall:=-0.9
+                                       ctrl_joint:=none rad_to_cl:=0.0">
+    <gazebo>
+      <plugin filename="gz-sim-lift-drag-system"
+              name="gz::sim::systems::LiftDrag">
+        <link_name>${link}</link_name>
+        <air_density>${air_density}</air_density>
+        <area>${area}</area>
+        <a0>${a0}</a0>
+        <cla>${cla}</cla>
+        <cda>${cda}</cda>
+        <alpha_stall>${alpha_stall}</alpha_stall>
+        <cla_stall>${cla_stall}</cla_stall>
+        <cda_stall>${cda_stall}</cda_stall>
+        <cp>${cp}</cp>
+        <forward>1 0 0</forward>
+        <upward>${upward}</upward>
+        <xacro:unless value="${ctrl_joint == 'none'}">
+          <control_joint_name>${ctrl_joint}</control_joint_name>
+          <control_joint_rad_to_cl>${rad_to_cl}</control_joint_rad_to_cl>
+        </xacro:unless>
+      </plugin>
+    </gazebo>
+  </xacro:macro>
+
+  <!-- Panel frames in base_link, mirroring the joint chain in the URDF. -->
+  <xacro:property name="tip_x"   value="${wing_x - 0.020 - 0.010}"/>
+  <xacro:property name="tip_y"   value="${panel_ac_y + panel_span/2.0 + tip_span/2.0}"/>
+  <xacro:property name="tip_z"   value="${wing_z + 0.020}"/>
+  <xacro:property name="vt_cp_y" value="${0.16*cos(vt_dihed)}"/>
+  <xacro:property name="vt_cp_z" value="${vt_z + 0.16*sin(vt_dihed)}"/>
+
+  <!-- inboard wing panels, carrying the ailerons -->
+  <xacro:liftdrag name="wing_left"  area="${panel_area}"
+                  cp="${wing_x} ${panel_ac_y} ${wing_z}"
+                  ctrl_joint="aileron_left_joint"  rad_to_cl="-2.0"/>
+  <xacro:liftdrag name="wing_right" area="${panel_area}"
+                  cp="${wing_x} ${-panel_ac_y} ${wing_z}"
+                  ctrl_joint="aileron_right_joint" rad_to_cl="-2.0"/>
+  <!-- raked outboard tips, dihedral ${dihedral} rad, so their normal is tilted -->
+  <xacro:liftdrag name="tip_left"  area="${tip_area}"
+                  cp="${tip_x} ${tip_y} ${tip_z}"
+                  upward="0 ${-sin(dihedral)} ${cos(dihedral)}"/>
+  <xacro:liftdrag name="tip_right" area="${tip_area}"
+                  cp="${tip_x} ${-tip_y} ${tip_z}"
+                  upward="0 ${sin(dihedral)} ${cos(dihedral)}"/>
+  <!-- V-tail panels: local +z is the panel normal, dihedral ${vt_dihed} rad -->
+  <xacro:liftdrag name="vtail_left"  area="${vt_area}" cla="3.6" cda="0.9" a0="0.0"
+                  cp="${vt_x} ${vt_cp_y} ${vt_cp_z}"
+                  upward="0 ${-sin(vt_dihed)} ${cos(vt_dihed)}"
+                  ctrl_joint="ruddervator_left_joint"  rad_to_cl="-3.0"/>
+  <xacro:liftdrag name="vtail_right" area="${vt_area}" cla="3.6" cda="0.9" a0="0.0"
+                  cp="${vt_x} ${-vt_cp_y} ${vt_cp_z}"
+                  upward="0 ${sin(vt_dihed)} ${cos(vt_dihed)}"
+                  ctrl_joint="ruddervator_right_joint" rad_to_cl="-3.0"/>
+
+  <!-- ================================ IMU =============================== -->
+  <gazebo reference="imu_link">
+    <sensor name="imu_sensor" type="imu">
+      <always_on>1</always_on>
+      <update_rate>250</update_rate>
+      <topic>/${ns}/imu</topic>
+      <gz_frame_id>imu_link</gz_frame_id>
+    </sensor>
+  </gazebo>
+
+  <gazebo>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+    <plugin filename="gz-sim-pose-publisher-system"
+            name="gz::sim::systems::PosePublisher">
+      <publish_link_pose>false</publish_link_pose>
+      <publish_model_pose>true</publish_model_pose>
+      <use_pose_vector_msg>true</use_pose_vector_msg>
+      <update_frequency>50</update_frequency>
+    </plugin>
+    <plugin filename="gz-sim-joint-state-publisher-system"
+            name="gz::sim::systems::JointStatePublisher"/>
+    <!-- Full 6-DOF state for the flight controller.  <dimensions>3</dimensions>
+         is what makes it publish z; without it you get a ground-robot 2D odom. -->
+    <plugin filename="gz-sim-odometry-publisher-system"
+            name="gz::sim::systems::OdometryPublisher">
+      <dimensions>3</dimensions>
+      <odom_topic>/${ns}/odom</odom_topic>
+      <odom_frame>world</odom_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <odom_publish_frequency>100</odom_publish_frequency>
+      <!-- Bridged straight to /tf, which is what lets RViz show the aircraft
+           actually moving through the world instead of sitting at the origin. -->
+      <tf_topic>/${ns}/tf</tf_topic>
+    </plugin>
+  </gazebo>
+
+  <!-- ============================= MATERIALS ============================ -->
+  <xacro:macro name="gz_color" params="link r g b">
+    <gazebo reference="${link}">
+      <visual>
+        <material>
+          <ambient>${r} ${g} ${b} 1</ambient>
+          <diffuse>${r} ${g} ${b} 1</diffuse>
+          <specular>0.04 0.04 0.04 1</specular>
+        </material>
+      </visual>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:gz_color link="base_link"    r="0.09" g="0.09" b="0.10"/>
+  <xacro:gz_color link="wing_left"    r="0.20" g="0.21" b="0.22"/>
+  <xacro:gz_color link="wing_right"   r="0.20" g="0.21" b="0.22"/>
+  <xacro:gz_color link="tip_left"     r="0.20" g="0.21" b="0.22"/>
+  <xacro:gz_color link="tip_right"    r="0.20" g="0.21" b="0.22"/>
+  <xacro:gz_color link="vtail_left"   r="0.20" g="0.21" b="0.22"/>
+  <xacro:gz_color link="vtail_right"  r="0.20" g="0.21" b="0.22"/>
+  <xacro:gz_color link="rotor_left"   r="0.60" g="0.53" b="0.36"/>
+  <xacro:gz_color link="rotor_right"  r="0.60" g="0.53" b="0.36"/>
+  <xacro:gz_color link="rotor_rear"   r="0.60" g="0.53" b="0.36"/>
+
+</robot>

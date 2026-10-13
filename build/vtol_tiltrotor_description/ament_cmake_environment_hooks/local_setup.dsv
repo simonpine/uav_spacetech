@@ -1,0 +1,2 @@
+source;share/vtol_tiltrotor_description/environment/ament_prefix_path.sh
+source;share/vtol_tiltrotor_description/environment/path.sh

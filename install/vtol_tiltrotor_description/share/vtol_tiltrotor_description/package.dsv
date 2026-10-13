@@ -1,0 +1,8 @@
+source;share/vtol_tiltrotor_description/hook/cmake_prefix_path.ps1
+source;share/vtol_tiltrotor_description/hook/cmake_prefix_path.dsv
+source;share/vtol_tiltrotor_description/hook/cmake_prefix_path.sh
+source;share/vtol_tiltrotor_description/local_setup.bash
+source;share/vtol_tiltrotor_description/local_setup.dsv
+source;share/vtol_tiltrotor_description/local_setup.ps1
+source;share/vtol_tiltrotor_description/local_setup.sh
+source;share/vtol_tiltrotor_description/local_setup.zsh
