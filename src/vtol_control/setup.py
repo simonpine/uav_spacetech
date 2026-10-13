@@ -19,7 +19,7 @@ setup(
     zip_safe=True,
     maintainer='ceres',
     maintainer_email='ceres.roverteam@gmail.com',
-    description='Flight controller and keyboard pilot for the tri-motor tiltrotor VTOL.',
+    description='Controlador de vuelo y piloto de teclado para el VTOL tiltrotor de tres motores.',
     license='BSD-3-Clause',
     tests_require=['pytest'],
     entry_points={

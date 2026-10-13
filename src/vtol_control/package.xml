@@ -4,9 +4,10 @@
   <name>vtol_control</name>
   <version>0.1.0</version>
   <description>
-    Stabilised flight controller and keyboard pilot for the SNOOP-style tri-motor
-    tiltrotor VTOL. Supplies the attitude loops, effector mixer and transition
-    sequencing that vtol_tiltrotor_description deliberately leaves out.
+    Controlador de vuelo estabilizado y piloto de teclado para el VTOL tiltrotor
+    de tres motores tipo SNOOP. Aporta los lazos de actitud, el mezclador de
+    actuadores y la secuencia de transición que vtol_tiltrotor_description deja
+    fuera a propósito.
   </description>
   <maintainer email="ceres.roverteam@gmail.com">ceres</maintainer>
   <license>BSD-3-Clause</license>

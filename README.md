@@ -1,237 +1,254 @@
-# VTOL tiltrotor — keyboard-flyable simulation
+# VTOL tiltrotor — simulación pilotable con el teclado
 
-A flying simulation of the SNOOP-style tri-motor tiltrotor VTOL, driven from the
-keyboard. **Spacebar switches between drone and aeroplane mode.**
+Simulación de vuelo del VTOL tiltrotor de tres motores tipo SNOOP, controlada
+desde el teclado. **La barra espaciadora alterna entre modo dron y modo avión.**
 
 ```bash
 ./fly.sh
 ```
 
-That builds the workspace on first run, starts Gazebo with a chase camera, and
-opens the keyboard pilot in its own window.
+La primera vez compila el workspace; después arranca Gazebo con una cámara de
+seguimiento y abre el piloto de teclado en su propia ventana.
 
 ```
-  SPACE   toggle  DRONE <-> AIRPLANE      (needs 25 m altitude to go out)
-  ENTER   arm / disarm                    X  kill motors immediately
+  ESPACIO  alterna DRONE <-> AIRPLANE     (para pasar a avión necesita 25 m de altura)
+  ENTER    armar / desarmar               X  apaga los motores de inmediato
 
-  W / S   pitch    nose down / nose up
-            DRONE: W flies forward, S flies backward
-            AIRPLANE: it is a stick - W dives, S climbs
-  A / D   roll     left / right
-  Q / E   yaw      left / right   (DRONE: tail rotor tilts. AIRPLANE: rudder)
-  R / F   power    DRONE: climb / descend.  AIRPLANE: trims target airspeed
-            arrow Up/Down do the same as R/F
+  W / S    cabeceo  morro abajo / morro arriba
+             DRONE: W vuela hacia delante, S hacia atrás
+             AIRPLANE: funciona como una palanca - W pica, S sube
+  A / D    alabeo   izquierda / derecha
+  Q / E    guiñada  izquierda / derecha   (DRONE: inclina el rotor de cola. AIRPLANE: timón)
+  R / F    potencia DRONE: subir / bajar.  AIRPLANE: ajusta la velocidad aerodinámica objetivo
+             las flechas Arriba/Abajo hacen lo mismo que R/F
 
-  T  auto take-off to 40 m     L  auto land
-  H  level off and hold        Z  centre all sticks      ?  reprint help
+  T  despegue automático a 40 m    L  aterrizaje automático
+  H  nivelar y mantener            Z  centrar todos los mandos   ?  volver a mostrar la ayuda
 ```
 
-A typical flight: **ENTER**, **T**, wait for the climb, **SPACE**, fly it around,
-**SPACE**, **L**.
+Un vuelo típico: **ENTER**, **T**, esperar a que termine el ascenso, **ESPACIO**,
+volar un rato, **ESPACIO**, **L**.
 
-Other ways to run it:
+La ayuda que imprime el propio programa (tecla **?**) sigue en inglés.
+
+Otras formas de ejecutarlo:
 
 ```bash
-./fly.sh --headless     # no Gazebo window; you still get the HUD and can fly
-./fly.sh --demo         # scripted mission, no keyboard needed
-./fly.sh --rviz         # RViz alongside Gazebo
+./fly.sh --headless     # sin ventana de Gazebo; sigues teniendo el HUD y puedes volar
+./fly.sh --demo         # misión con guion, sin teclado
+./fly.sh --rviz         # RViz junto a Gazebo
 ```
 
-## What you are flying
+## Qué estás pilotando
 
-The Cannon SNOOP 18: 5.496 kg, 1.70 m span, two front rotors that tilt from
-hover to cruise, and a rear rotor on a pylon that tilts sideways to yaw,
-tricopter-style. Stall is 12.2 m/s and it cruises around 20 m/s.
+El Cannon SNOOP 18: 5,496 kg, 1,70 m de envergadura, dos rotores delanteros que
+se inclinan de vuelo estacionario a crucero, y un rotor trasero sobre un pilón
+que se inclina lateralmente para la guiñada, al estilo de un tricóptero. La
+entrada en pérdida es a 12,2 m/s y la velocidad de crucero ronda los 20 m/s.
 
 | | |
 |---|---|
-| `src/vtol_tiltrotor_description` | the airframe: URDF/xacro, Gazebo plugin layer, world, bridge config |
-| `src/vtol_control` | the flight controller, the keyboard pilot, the scripted mission |
-| `tools/` | the measurement scripts the controller's constants came from |
+| `src/vtol_tiltrotor_description` | la aeronave: URDF/xacro, capa de plugins de Gazebo, mundo, configuración del bridge |
+| `src/vtol_control` | el controlador de vuelo, el piloto de teclado, la misión con guion |
+| `tools/` | los scripts de medición de los que salen las constantes del controlador |
 
-The description package was written as a *description* — its own README says so:
-"There is no controller here. No stabilisation, no mixer, no transition
-sequencing. You supply that." `vtol_control` is that missing layer.
+El paquete de descripción se escribió solo como *descripción*, y su propio README
+lo dice: "No hay controlador en *este* paquete. Ni estabilización, ni mezclador,
+ni secuencia de transición." `vtol_control` es esa capa que faltaba.
 
-## How the controller works
+## Cómo funciona el controlador
 
-One set of loops covers hover, transition and cruise. The obvious alternative —
-two controllers with a switch at 45° of tilt — fails on this airframe, because at
-the switch point neither set of effectors has full authority: the rotors' pitch
-arm has collapsed and the wing has not yet got the dynamic pressure.
+Un único conjunto de lazos cubre el vuelo estacionario, la transición y el
+crucero. La alternativa obvia, dos controladores que se cambian a 45° de
+inclinación, falla en esta aeronave: en el punto de cambio ninguno de los dos
+grupos de actuadores tiene autoridad completa. El brazo de cabeceo de los rotores
+ya se ha reducido y el ala todavía no tiene presión dinámica suficiente.
 
 ```
-   sticks ─► attitude ─► rate PIDs ─► desired Fz, Mx, My, Mz
+   mandos ─► actitud ─► PID de velocidad angular ─► Fz, Mx, My, Mz deseados
                                             │
                         ┌───────────────────┴───────────────────┐
-                    rotors                                  surfaces
-        front pair + rear rotor + rear tilt        ailerons + ruddervators
-             weight ~ cos(tilt)                     weight ~ (V/16)²
+                    rotores                              superficies
+       par delantero + rotor trasero + incl. trasera   alerones + ruddervators
+             peso ~ cos(inclinación)                    peso ~ (V/16)²
 ```
 
-Every axis's demand is split between the two effector groups in proportion to the
-authority each actually has *right now*, and the two shares always sum to the
-full demand. There is no switch and no discontinuity.
+La demanda de cada eje se reparte entre los dos grupos de actuadores en
+proporción a la autoridad que tiene cada uno *en ese momento*, y las dos partes
+siempre suman la demanda completa. No hay conmutación ni discontinuidad.
 
-Three decisions are worth knowing about:
+Conviene conocer tres decisiones:
 
-**The tilt angle is scheduled on airspeed, not on a timer.** The nacelles only
-reach 90° once the aircraft is genuinely fast enough for the wing to carry it, and
-if the acceleration stalls the tilt stops advancing instead of dropping the
-aircraft. This makes the front transition self-regulating; it completes in about
-3 seconds and holds altitude to within a metre while doing it.
+**El ángulo de inclinación se programa según la velocidad aerodinámica, no con un
+temporizador.** Las góndolas solo llegan a 90° cuando la aeronave va realmente lo
+bastante rápido para que el ala la sostenga, y si la aceleración se estanca la
+inclinación deja de avanzar en lugar de dejar caer la aeronave. Así la transición
+hacia delante se regula sola: se completa en unos 3 segundos y mantiene la
+altitud dentro de un metro mientras ocurre.
 
-**The rear rotor is solved for pitch, after the front pair thrust is decided.**
-Solving pitch and heave together as a 2×2 is exact in hover but goes singular at
-84° of tilt. Solving pitch last makes the pitch axis exact at every tilt angle and
-leaves the vertical axis — which has a climb-rate integrator behind it — to absorb
-the slack.
+**El rotor trasero se calcula para el cabeceo, después de decidir el empuje del
+par delantero.** Resolver cabeceo y empuje vertical juntos como un sistema 2×2 es
+exacto en estacionario, pero se vuelve singular a 84° de inclinación. Resolver el
+cabeceo al final hace que ese eje sea exacto en cualquier ángulo de inclinación y
+deja que el eje vertical, que tiene un integrador de velocidad de ascenso detrás,
+absorba el margen.
 
-**In cruise, altitude is held with pitch and power holds airspeed, not the other
-way round.** This airframe's drag model is `cd = cda·alpha` with no parasite term,
-so drag *falls* as it speeds up and a fixed throttle has no stable trim speed.
-R/F therefore trims a target airspeed between 14 and 30 m/s, and the aircraft
-finds its own power setting.
+**En crucero la altitud se mantiene con el cabeceo y la potencia mantiene la
+velocidad, no al revés.** El modelo de resistencia de esta aeronave es
+`cd = cda·alpha` sin término parásito, así que la resistencia *disminuye* al
+acelerar y con un acelerador fijo no existe una velocidad de equilibrio estable.
+Por eso R/F ajustan una velocidad aerodinámica objetivo entre 14 y 30 m/s, y la
+aeronave encuentra sola la potencia necesaria.
 
-The controller also protects itself: it refuses to transition below 25 m AGL, and
-it comes back to drone mode by itself if the airspeed decays towards stall or it
-gets within 15 m of the ground in aeroplane mode.
+El controlador también se protege a sí mismo: se niega a hacer la transición por
+debajo de 25 m sobre el suelo, y vuelve solo al modo dron si la velocidad
+aerodinámica cae hacia la pérdida o si se acerca a menos de 15 m del suelo en
+modo avión.
 
-## Three defects in the model, and what was done about them
+## Tres defectos del modelo
 
-The description package as shipped does not simulate. Each of these is silent —
-nothing errors, the aircraft just does not work — so they are documented at the
-point of the fix as well as here.
+El paquete de descripción, tal como venía, no simulaba. Ninguno de estos defectos
+da error: la aeronave simplemente no funciona. Por eso están documentados tanto
+en el punto donde se corrigen como aquí.
 
-**1. No aerodynamics at all.** sdformat lumps every fixed-joint child into its
-parent when it converts URDF to SDF, so `wing_left`, `tip_left`, `vtail_left` and
-their mirrors do not survive as SDF links. All six `LiftDrag` plugins failed with
-*"Link with name[wing_left] not found. The LiftDrag will not generate forces"* —
-an aircraft with no lift and no drag.
+**1. Ninguna aerodinámica.** Al convertir URDF a SDF, sdformat fusiona cada hijo
+de una articulación fija con su padre, así que `wing_left`, `tip_left`,
+`vtail_left` y sus simétricos no sobreviven como links SDF. Los seis plugins
+`LiftDrag` fallaban con *"Link with name[wing_left] not found. The LiftDrag will
+not generate forces"*: una aeronave sin sustentación ni resistencia.
 
-Keeping the links alive with `<preserveFixedJoint>` fixes that error and causes a
-worse one (below), so instead all six panels now attach to `base_link` with their
-`<cp>` and `<upward>` given explicitly in the base frame. That is physically
-identical — the panels were rigidly attached anyway — and it keeps the
-aerodynamic damping, because `LiftDrag` evaluates the airflow at `<cp>` using the
-link's angular velocity as well as its linear velocity.
+Mantener los links con `<preserveFixedJoint>` corrige ese error pero provoca otro
+peor (ver más abajo), así que ahora los seis paneles se acoplan a `base_link`
+con su `<cp>` y su `<upward>` dados explícitamente en el marco de la base.
+Físicamente es idéntico, porque los paneles ya estaban unidos rígidamente, y
+conserva el amortiguamiento aerodinámico, porque `LiftDrag` evalúa el flujo en
+`<cp>` usando la velocidad angular del link además de la lineal.
 
-**2. The servos did not reach their setpoints.** The `JointPositionController`
-gains in the original plugin layer are far too low for a force-based PID: a
-0.30 rad aileron command settled at **0.02 rad**, so the aircraft had essentially
-no pitch or roll control in cruise. They now use `<use_velocity_commands>`, which
-makes them behave like real position-controlled servos, rate-limited by `cmd_max`
-set from each joint's own URDF `<limit velocity="…">`. Commanded 0.30 rad now
-gives 0.300 rad.
+**2. Los servos no alcanzaban sus consignas.** Las ganancias del
+`JointPositionController` en la capa de plugins original son demasiado bajas para
+un PID basado en fuerza: una orden de 0,30 rad al alerón se estabilizaba en
+**0,02 rad**, así que en crucero la aeronave prácticamente no tenía control de
+cabeceo ni de alabeo. Ahora usan `<use_velocity_commands>`, con lo que se
+comportan como servos reales controlados en posición, con la velocidad limitada
+por `cmd_max`, que se toma del `<limit velocity="…">` de cada articulación en el
+URDF. Una orden de 0,30 rad da ahora 0,300 rad.
 
-**3. Servos latch on their hard limits.** A consequence of the fix above: driving
-a joint onto its limit latches dartsim's limit constraint and it stops responding
-to anything. For `rear_tilt` — the only yaw actuator in hover — that is fatal. The
-controller now commands a few percent inside every joint limit.
+**3. Los servos se quedan bloqueados en sus topes.** Es una consecuencia de la
+corrección anterior: llevar una articulación hasta su límite activa la
+restricción de límite de dartsim y la articulación deja de responder. Para
+`rear_tilt`, el único actuador de guiñada en estacionario, eso es fatal. El
+controlador ahora ordena posiciones unos pocos puntos porcentuales por dentro de
+cada límite.
 
-This one is worth dwelling on, because it produced the most misleading symptom in
-the whole project: in aeroplane mode the aircraft would pitch down and dive into
-the ground while the logged elevator command was perfectly sensible and pointing
-the right way. The command was fine. The joint was stuck.
+Este merece detenerse en él, porque produjo el síntoma más engañoso de todo el
+proyecto: en modo avión la aeronave picaba y se estrellaba contra el suelo
+mientras la orden de profundidad registrada era perfectamente razonable y tenía
+el signo correcto. La orden estaba bien. La articulación estaba bloqueada.
 
-## The control-surface coefficients were measured, not derived
+## Los coeficientes de las superficies de control se midieron, no se dedujeron
 
-`airframe.py`'s `AIL_MX_PER_Q`, `ELE_MY_PER_Q` and `RUD_MZ_PER_Q` convert a
-desired moment into a deflection, so their **sign** decides whether the pitch and
-roll loops close negative or positive. They come from `tools/measure_surfaces.py`,
-which flies the aircraft on rotors alone, holds one surface at ±0.30 rad, and
-reads how much rotor moment the controller needs to cancel it. In steady state
-the total moment is zero, so the rotors are cancelling the surface exactly, and
-the rotor moment follows in closed form from the commanded speeds and the
-geometry.
+`AIL_MX_PER_Q`, `ELE_MY_PER_Q` y `RUD_MZ_PER_Q`, en `airframe.py`, convierten un
+momento deseado en una deflexión, así que su **signo** decide si los lazos de
+cabeceo y alabeo se cierran con realimentación negativa o positiva. Salen de
+`tools/measure_surfaces.py`, que vuela la aeronave solo con los rotores, fija una
+superficie a ±0,30 rad y lee cuánto momento de rotor necesita el controlador para
+compensarla. En régimen permanente el momento total es cero, así que los rotores
+compensan exactamente la superficie, y el momento de los rotores se obtiene en
+forma cerrada a partir de las velocidades ordenadas y la geometría.
 
-Three open-loop step-response methods were tried first and all of them failed.
-The reasons are recorded in that file's docstring, because they are easy to walk
-into: two runs at fixed +D and −D are not comparable once an unstabilised aircraft
-has diverged; a 0.35 s window under-reports control power four- to five-fold,
-because the V-tail's 140 N·m/rad of pitch stiffness cancels the elevator within
-the 0.4 s short period; and a 70 ms window short enough to get inside the short
-period has a signal-to-noise ratio of about one.
+Antes se probaron tres métodos de respuesta al escalón en lazo abierto, y los tres
+fallaron. Los motivos están en el docstring de ese archivo, porque es fácil caer
+en ellos: dos ensayos con +D y −D fijos no son comparables una vez que una
+aeronave sin estabilizar ha divergido; una ventana de 0,35 s subestima la
+potencia de control entre cuatro y cinco veces, porque los 140 N·m/rad de rigidez
+en cabeceo de la cola en V anulan el efecto de la profundidad dentro del periodo
+corto de 0,4 s; y una ventana de 70 ms, lo bastante corta para quedar dentro del
+periodo corto, tiene una relación señal/ruido de aproximadamente uno.
 
-The measured signs agree with the analytical derivation. The magnitudes are
-40–85% of it, and the measured numbers are the ones in use.
+Los signos medidos coinciden con la deducción analítica. Las magnitudes son entre
+el 40 y el 85 % de las analíticas, y las que se usan son las medidas.
 
 ```bash
-# re-measure, e.g. after changing the aero blocks
+# volver a medir, p. ej. después de cambiar los bloques aerodinámicos
 ros2 launch vtol_control vtol_sim.launch.py gui:=false publish_surfaces:=false
 python3 tools/measure_surfaces.py
 
-# re-derive the mass properties after changing the geometry
+# volver a calcular las propiedades másicas después de cambiar la geometría
 python3 tools/mass_props.py
 ```
 
-## Regression test
+## Prueba de regresión
 
-`demo_flight` flies the whole envelope using exactly the messages the keyboard
-sends, so it exercises the real control path rather than a back door:
+`demo_flight` recorre toda la envolvente de vuelo usando exactamente los mismos
+mensajes que envía el teclado, así que ejercita el camino de control real y no
+una puerta trasera:
 
 ```bash
 ros2 launch vtol_control vtol_sim.launch.py gui:=false &
 ros2 run vtol_control demo_flight --csv /tmp/flight.csv
 ```
 
-Fifteen stages: arm, auto take-off to 40 m, hover, altitude hold, yaw, translate,
-transition, cruise, bank right, bank left, climb in cruise, back-transition,
-settle, auto land. Every stage asserts an *invariant* as well as a completion
-condition — without that a stage whose condition is "mode == DRONE" passes
-trivially after the aircraft has crashed and the safety logic has dropped it back
-to drone mode. A crash is a failure, not a pass.
+Quince etapas: armado, despegue automático a 40 m, estacionario, mantenimiento de
+altitud, guiñada, traslación, transición, crucero, viraje a la derecha, viraje a
+la izquierda, ascenso en crucero, transición de vuelta, estabilización y
+aterrizaje automático. Cada etapa comprueba un *invariante* además de una
+condición de finalización. Sin eso, una etapa cuya condición es "mode == DRONE"
+pasaría trivialmente después de que la aeronave se estrellara y la lógica de
+seguridad la devolviera al modo dron. Un accidente es un fallo, no un éxito.
 
-Last run, all fifteen passed:
+En la última ejecución pasaron las quince:
 
-| stage | mode | altitude | airspeed |
+| etapa | modo | altitud | velocidad aerodinámica |
 |---|---|---|---|
-| hover, altitude hold | DRONE | 40.0 → 40.0 m | 1.6 m/s |
-| transition, 3.2 s | → AIRPLANE | 39.9 → 40.7 m | 7.6 → 21.8 m/s |
-| cruise, 10 s | AIRPLANE | 37.7 → 40.1 m | 20.6 → 24.1 m/s |
-| bank ±34° | AIRPLANE | 36 → 38 m | 21 m/s |
-| climb in cruise | AIRPLANE | 36 → 55.7 m | 21 m/s |
-| back-transition, 3.5 s | → DRONE | 55.7 → 56.8 m | 22.6 → 20.0 m/s |
+| estacionario, mantenimiento de altitud | DRONE | 40,0 → 40,0 m | 1,6 m/s |
+| transición, 3,2 s | → AIRPLANE | 39,9 → 40,7 m | 7,6 → 21,8 m/s |
+| crucero, 10 s | AIRPLANE | 37,7 → 40,1 m | 20,6 → 24,1 m/s |
+| viraje ±34° | AIRPLANE | 36 → 38 m | 21 m/s |
+| ascenso en crucero | AIRPLANE | 36 → 55,7 m | 21 m/s |
+| transición de vuelta, 3,5 s | → DRONE | 55,7 → 56,8 m | 22,6 → 20,0 m/s |
 
-## If it stops working
+## Si deja de funcionar
 
-**Everything goes quiet — no topics, but the processes look healthy.** FastDDS
-leaves its shared-memory segments in `/dev/shm` behind when a node is
-`SIGKILL`ed, and enough orphans break discovery. The symptom is misleading: the
-aircraft arms, then takes off at a tenth of the commanded climb rate because the
-controller is only receiving some of its IMU samples. `fly.sh` clears them at
-start-up when nothing else is using ROS; by hand it is
+**Todo se queda en silencio: no hay topics, pero los procesos parecen sanos.**
+FastDDS deja sus segmentos de memoria compartida en `/dev/shm` cuando un nodo
+recibe `SIGKILL`, y si se acumulan suficientes huérfanos se rompe el
+descubrimiento. El síntoma engaña: la aeronave se arma y luego despega a una
+décima parte de la velocidad de ascenso ordenada, porque el controlador solo
+recibe parte de las muestras de la IMU. `fly.sh` los borra al arrancar cuando
+nada más está usando ROS; a mano sería:
 
 ```bash
-pkill -f "ign gazebo"           # SIGTERM, not -9
+pkill -f "ign gazebo"           # SIGTERM, no -9
 rm -f /dev/shm/fastrtps_* /dev/shm/sem.fastrtps_*
 ```
 
-**Two simulators at once.** Both publish `/vtol/odom` and both listen to
-`/vtol/command/motor_speed`, so the controller sees a position jumping between
-two aircraft — airspeed in the thousands, altitude flicking to zero. `fly.sh`
-refuses to start a second one. `ROS_DOMAIN_ID=42 ./fly.sh` gives a run its own
-domain.
+**Dos simuladores a la vez.** Los dos publican `/vtol/odom` y los dos escuchan
+`/vtol/command/motor_speed`, así que el controlador ve una posición que salta
+entre dos aeronaves: velocidades de miles de m/s y altitudes que caen a cero.
+`fly.sh` se niega a arrancar un segundo simulador. `ROS_DOMAIN_ID=42 ./fly.sh`
+le da a una ejecución su propio dominio.
 
-**The Gazebo window will not open.** Try `./fly.sh --headless`, or
-`ros2 launch vtol_control vtol_sim.launch.py render_engine:=ogre` if the GPU
-driver cannot do ogre2. Headless is fully flyable: the HUD is in the keyboard
-pilot's terminal, not in Gazebo.
+**No se abre la ventana de Gazebo.** Prueba `./fly.sh --headless`, o
+`ros2 launch vtol_control vtol_sim.launch.py render_engine:=ogre` si el driver de
+la GPU no soporta ogre2. En modo headless se puede volar perfectamente: el HUD
+está en la terminal del piloto de teclado, no en Gazebo.
 
-**You lost the aircraft in the Gazebo view.** Right-click it in the Entity Tree
-and pick Follow. The launch does this automatically a few seconds after spawn.
+**Perdiste la aeronave en la vista de Gazebo.** Haz clic derecho sobre ella en el
+Entity Tree y elige Follow. El launch lo hace automáticamente unos segundos
+después de que aparece.
 
-## Environment
+## Entorno
 
-Built and tested on ROS 2 Humble with Gazebo Fortress (ign-gazebo 6.17.1) on an
-aarch64 Jetson, real-time factor ≈ 1.0 with the GUI up.
+Compilado y probado con ROS 2 Humble y Gazebo Fortress (ign-gazebo 6.17.1) en
+una Jetson aarch64, con un factor de tiempo real ≈ 1,0 con la interfaz gráfica
+abierta.
 
-`gazebo_harmonic.xacro` is the same plugin layer for Jazzy / Gazebo Harmonic —
-identical apart from `gz-sim-*` / `gz::sim::systems::` naming. Select it with
-`gz_flavor:=harmonic`. Both are generated from the same source, and the fixes
-above are in both.
+`gazebo_harmonic.xacro` es la misma capa de plugins para Jazzy / Gazebo Harmonic:
+idéntica salvo por los nombres `gz-sim-*` / `gz::sim::systems::`. Se selecciona
+con `gz_flavor:=harmonic`. Las dos se generan desde la misma fuente, y las
+correcciones descritas arriba están en ambas.
 
-Kinematics only, no simulator:
+Solo cinemática, sin simulador:
 
 ```bash
 ros2 launch vtol_tiltrotor_description display.launch.py
