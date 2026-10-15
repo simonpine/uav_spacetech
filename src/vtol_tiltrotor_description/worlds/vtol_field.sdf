@@ -113,10 +113,23 @@
             name="ignition::gazebo::systems::Contact"/>
     <plugin filename="ignition-gazebo-imu-system"
             name="ignition::gazebo::systems::Imu"/>
+    <plugin filename="ignition-gazebo-sensors-system"
+        name="ignition::gazebo::systems::Sensors">
+    <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="ignition-gazebo-navsat-system"
+        name="ignition::gazebo::systems::NavSat"/>
 
     <gravity>0 0 -9.80665</gravity>
     <magnetic_field>6e-06 2.3e-05 -4.2e-05</magnetic_field>
     <atmosphere type="adiabatic"/>
+    <spherical_coordinates>
+      <surface_model>EARTH_WGS84</surface_model>
+      <latitude_deg>4.7110</latitude_deg>
+      <longitude_deg>-74.0721</longitude_deg>
+      <elevation>2600</elevation>
+      <heading_deg>0</heading_deg>
+    </spherical_coordinates>
 
     <scene>
       <ambient>0.45 0.47 0.50 1</ambient>
@@ -364,6 +377,28 @@
         </visual>
       </link>
     </model>
-
+    <!-- Obstáculos para la prueba de la cámara de profundidad -->
+    <model name="test_box">
+      <static>true</static>
+      <pose>6 0 1 0 0 0</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>1 2 2</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>1 2 2</size></box></geometry>
+          <material><ambient>0.8 0.2 0.2 1</ambient><diffuse>0.9 0.3 0.3 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
+    <model name="test_box_far">
+      <static>true</static>
+      <pose>14 -3 1.5 0 0 0.4</pose>
+      <link name="link">
+        <collision name="c"><geometry><box><size>2 2 3</size></box></geometry></collision>
+        <visual name="v">
+          <geometry><box><size>2 2 3</size></box></geometry>
+          <material><ambient>0.2 0.3 0.8 1</ambient><diffuse>0.3 0.4 0.9 1</diffuse></material>
+        </visual>
+      </link>
+    </model>
   </world>
 </sdf>

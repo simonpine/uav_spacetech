@@ -224,6 +224,19 @@
     <origin xyz="0.10 0 0.01"/>
   </joint>
 
+  <!-- ========================= DEPTH CAMERA + GPS ======================= -->
+  <link name="depth_camera_link"/>
+  <joint name="depth_camera_joint" type="fixed">
+    <parent link="base_link"/><child link="depth_camera_link"/>
+    <origin xyz="0.64 0 0" rpy="0 0 0"/>   <!-- justo delante de la esfera de la nariz -->
+  </joint>
+
+  <link name="gps_link"/>
+  <joint name="gps_joint" type="fixed">
+    <parent link="base_link"/><child link="gps_link"/>
+    <origin xyz="0.20 0 0.10"/>            <!-- sobre el pod -->
+  </joint>
+
   <!-- ============================== WING =============================== -->
   <!-- Link frame = half-panel aerodynamic centre, so LiftDrag <cp> = 0 0 0 -->
   <xacro:macro name="wing_panel" params="side reflect">
