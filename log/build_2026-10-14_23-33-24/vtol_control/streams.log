@@ -1,0 +1,19 @@
+[2.649s] Invoking command in '/home/vtol/vtol/build/vtol_control': AMENT_PREFIX_PATH=/home/vtol/vtol/install/vtol_tiltrotor_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/vtol/vtol/install/vtol_tiltrotor_description PYTHONPATH=/home/vtol/vtol/build/vtol_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/vtol/vtol/install/vtol_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/vtol/vtol/build/vtol_control/build --no-deps symlink_data
+[3.041s] running develop
+[3.263s] running egg_info
+[3.263s] writing vtol_control.egg-info/PKG-INFO
+[3.264s] writing dependency_links to vtol_control.egg-info/dependency_links.txt
+[3.264s] writing entry points to vtol_control.egg-info/entry_points.txt
+[3.265s] writing requirements to vtol_control.egg-info/requires.txt
+[3.265s] writing top-level names to vtol_control.egg-info/top_level.txt
+[3.267s] reading manifest file 'vtol_control.egg-info/SOURCES.txt'
+[3.268s] writing manifest file 'vtol_control.egg-info/SOURCES.txt'
+[3.269s] running build_ext
+[3.271s] Creating /home/vtol/vtol/install/vtol_control/lib/python3.10/site-packages/vtol-control.egg-link (link to .)
+[3.272s] Installing demo_flight script to /home/vtol/vtol/install/vtol_control/lib/vtol_control
+[3.272s] Installing flight_controller script to /home/vtol/vtol/install/vtol_control/lib/vtol_control
+[3.273s] Installing keyboard_teleop script to /home/vtol/vtol/install/vtol_control/lib/vtol_control
+[3.273s] 
+[3.273s] Installed /home/vtol/vtol/build/vtol_control
+[3.273s] running symlink_data
+[3.319s] Invoked command in '/home/vtol/vtol/build/vtol_control' returned '0': AMENT_PREFIX_PATH=/home/vtol/vtol/install/vtol_tiltrotor_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/vtol/vtol/install/vtol_tiltrotor_description PYTHONPATH=/home/vtol/vtol/build/vtol_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/vtol/vtol/install/vtol_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/vtol/vtol/build/vtol_control/build --no-deps symlink_data

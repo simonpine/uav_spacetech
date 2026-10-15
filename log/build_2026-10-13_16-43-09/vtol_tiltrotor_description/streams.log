@@ -1,0 +1,48 @@
+[0.057s] Invoking command in '/home/vtol/vtol/build/vtol_tiltrotor_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/vtol/vtol/src/vtol_tiltrotor_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/vtol/vtol/install/vtol_tiltrotor_description
+[1.019s] -- The C compiler identification is GNU 11.4.0
+[2.951s] -- The CXX compiler identification is GNU 11.4.0
+[4.113s] -- Detecting C compiler ABI info
+[4.522s] -- Detecting C compiler ABI info - done
+[4.536s] -- Check for working C compiler: /usr/bin/cc - skipped
+[4.538s] -- Detecting C compile features
+[4.541s] -- Detecting C compile features - done
+[4.549s] -- Detecting CXX compiler ABI info
+[4.981s] -- Detecting CXX compiler ABI info - done
+[4.997s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[4.998s] -- Detecting CXX compile features
+[4.998s] -- Detecting CXX compile features - done
+[5.028s] -- Found ament_cmake: 1.3.14 (/opt/ros/humble/share/ament_cmake/cmake)
+[5.465s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[5.686s] -- Override CMake install command with custom implementation using symlinks instead of copying resources
+[5.954s] -- Configuring done
+[5.970s] -- Generating done
+[5.975s] -- Build files have been written to: /home/vtol/vtol/build/vtol_tiltrotor_description
+[5.984s] Invoked command in '/home/vtol/vtol/build/vtol_tiltrotor_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/vtol/vtol/src/vtol_tiltrotor_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/vtol/vtol/install/vtol_tiltrotor_description
+[5.993s] Invoking command in '/home/vtol/vtol/build/vtol_tiltrotor_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/vtol/vtol/build/vtol_tiltrotor_description -- -j8 -l8
+[6.073s] Invoked command in '/home/vtol/vtol/build/vtol_tiltrotor_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/vtol/vtol/build/vtol_tiltrotor_description -- -j8 -l8
+[6.102s] Invoking command in '/home/vtol/vtol/build/vtol_tiltrotor_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/vtol/vtol/build/vtol_tiltrotor_description
+[6.117s] -- Install configuration: ""
+[6.118s] -- Execute custom install script
+[6.123s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/urdf/gazebo_fortress.xacro
+[6.144s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/urdf/gazebo_harmonic.xacro
+[6.162s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/urdf/vtol_tiltrotor.urdf.xacro
+[6.185s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/launch/display.launch.py
+[6.205s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/config/gz_bridge.yaml
+[6.226s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/rviz/vtol.rviz
+[6.248s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/worlds/vtol_field.sdf
+[6.272s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/ament_index/resource_index/package_run_dependencies/vtol_tiltrotor_description
+[6.292s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/ament_index/resource_index/parent_prefix_path/vtol_tiltrotor_description
+[6.318s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/environment/ament_prefix_path.sh
+[6.343s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/environment/ament_prefix_path.dsv
+[6.372s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/environment/path.sh
+[6.398s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/environment/path.dsv
+[6.423s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/local_setup.bash
+[6.447s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/local_setup.sh
+[6.473s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/local_setup.zsh
+[6.495s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/local_setup.dsv
+[6.518s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/package.dsv
+[6.540s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/ament_index/resource_index/packages/vtol_tiltrotor_description
+[6.568s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/cmake/vtol_tiltrotor_descriptionConfig.cmake
+[6.588s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/cmake/vtol_tiltrotor_descriptionConfig-version.cmake
+[6.606s] -- Symlinking: /home/vtol/vtol/install/vtol_tiltrotor_description/share/vtol_tiltrotor_description/package.xml
+[6.637s] Invoked command in '/home/vtol/vtol/build/vtol_tiltrotor_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/vtol/vtol/build/vtol_tiltrotor_description

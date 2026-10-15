@@ -1,0 +1,30 @@
+[3.142s] Invoking command in '/home/vtol/vtol/build/vtol_control': AMENT_PREFIX_PATH=/home/vtol/vtol/install/vtol_tiltrotor_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/vtol/vtol/install/vtol_tiltrotor_description PYTHONPATH=/home/vtol/vtol/build/vtol_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/vtol/vtol/install/vtol_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/vtol/vtol/build/vtol_control/build --no-deps symlink_data
+[3.689s] running develop
+[4.033s] running egg_info
+[4.033s] creating vtol_control.egg-info
+[4.034s] writing vtol_control.egg-info/PKG-INFO
+[4.036s] writing dependency_links to vtol_control.egg-info/dependency_links.txt
+[4.037s] writing entry points to vtol_control.egg-info/entry_points.txt
+[4.039s] writing requirements to vtol_control.egg-info/requires.txt
+[4.039s] writing top-level names to vtol_control.egg-info/top_level.txt
+[4.039s] writing manifest file 'vtol_control.egg-info/SOURCES.txt'
+[4.044s] reading manifest file 'vtol_control.egg-info/SOURCES.txt'
+[4.045s] writing manifest file 'vtol_control.egg-info/SOURCES.txt'
+[4.050s] running build_ext
+[4.051s] Creating /home/vtol/vtol/install/vtol_control/lib/python3.10/site-packages/vtol-control.egg-link (link to .)
+[4.054s] Installing demo_flight script to /home/vtol/vtol/install/vtol_control/lib/vtol_control
+[4.056s] Installing flight_controller script to /home/vtol/vtol/install/vtol_control/lib/vtol_control
+[4.056s] Installing keyboard_teleop script to /home/vtol/vtol/install/vtol_control/lib/vtol_control
+[4.057s] 
+[4.057s] Installed /home/vtol/vtol/build/vtol_control
+[4.058s] running symlink_data
+[4.058s] creating /home/vtol/vtol/install/vtol_control/share/ament_index
+[4.058s] creating /home/vtol/vtol/install/vtol_control/share/ament_index/resource_index
+[4.059s] creating /home/vtol/vtol/install/vtol_control/share/ament_index/resource_index/packages
+[4.060s] symbolically linking /home/vtol/vtol/build/vtol_control/resource/vtol_control -> /home/vtol/vtol/install/vtol_control/share/ament_index/resource_index/packages
+[4.061s] symbolically linking /home/vtol/vtol/build/vtol_control/package.xml -> /home/vtol/vtol/install/vtol_control/share/vtol_control
+[4.061s] creating /home/vtol/vtol/install/vtol_control/share/vtol_control/launch
+[4.061s] symbolically linking /home/vtol/vtol/build/vtol_control/launch/vtol_sim.launch.py -> /home/vtol/vtol/install/vtol_control/share/vtol_control/launch
+[4.063s] creating /home/vtol/vtol/install/vtol_control/share/vtol_control/config
+[4.065s] symbolically linking /home/vtol/vtol/build/vtol_control/config/flight_controller.yaml -> /home/vtol/vtol/install/vtol_control/share/vtol_control/config
+[4.156s] Invoked command in '/home/vtol/vtol/build/vtol_control' returned '0': AMENT_PREFIX_PATH=/home/vtol/vtol/install/vtol_tiltrotor_description:${AMENT_PREFIX_PATH} CMAKE_PREFIX_PATH=/home/vtol/vtol/install/vtol_tiltrotor_description PYTHONPATH=/home/vtol/vtol/build/vtol_control/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/vtol/vtol/install/vtol_control/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/vtol/vtol/build/vtol_control/build --no-deps symlink_data

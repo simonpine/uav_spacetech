@@ -1,0 +1,17 @@
+running develop
+running egg_info
+writing vtol_control.egg-info/PKG-INFO
+writing dependency_links to vtol_control.egg-info/dependency_links.txt
+writing entry points to vtol_control.egg-info/entry_points.txt
+writing requirements to vtol_control.egg-info/requires.txt
+writing top-level names to vtol_control.egg-info/top_level.txt
+reading manifest file 'vtol_control.egg-info/SOURCES.txt'
+writing manifest file 'vtol_control.egg-info/SOURCES.txt'
+running build_ext
+Creating /home/vtol/vtol/install/vtol_control/lib/python3.10/site-packages/vtol-control.egg-link (link to .)
+Installing demo_flight script to /home/vtol/vtol/install/vtol_control/lib/vtol_control
+Installing flight_controller script to /home/vtol/vtol/install/vtol_control/lib/vtol_control
+Installing keyboard_teleop script to /home/vtol/vtol/install/vtol_control/lib/vtol_control
+
+Installed /home/vtol/vtol/build/vtol_control
+running symlink_data

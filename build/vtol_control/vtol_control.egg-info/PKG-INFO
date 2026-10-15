@@ -1,7 +1,7 @@
 Metadata-Version: 2.1
 Name: vtol-control
 Version: 0.1.0
-Summary: Flight controller and keyboard pilot for the tri-motor tiltrotor VTOL.
+Summary: Controlador de vuelo y piloto de teclado para el VTOL tiltrotor de tres motores.
 Home-page: UNKNOWN
 Maintainer: ceres
 Maintainer-email: ceres.roverteam@gmail.com

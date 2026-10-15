@@ -98,13 +98,13 @@
 		{
 			"backtrace" : 9,
 			"isGenerated" : true,
-			"path" : "/home/ceres/uav/build/vtol_tiltrotor_description/CMakeFiles/vtol_tiltrotor_description_uninstall",
+			"path" : "/home/vtol/vtol/build/vtol_tiltrotor_description/CMakeFiles/vtol_tiltrotor_description_uninstall",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 0,
 			"isGenerated" : true,
-			"path" : "/home/ceres/uav/build/vtol_tiltrotor_description/CMakeFiles/vtol_tiltrotor_description_uninstall.rule",
+			"path" : "/home/vtol/vtol/build/vtol_tiltrotor_description/CMakeFiles/vtol_tiltrotor_description_uninstall.rule",
 			"sourceGroupIndex" : 1
 		}
 	],

@@ -1,0 +1,6 @@
+Invoking command in '/home/vtol/vtol/build/vtol_tiltrotor_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/vtol/vtol/src/vtol_tiltrotor_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/vtol/vtol/install/vtol_tiltrotor_description
+Invoked command in '/home/vtol/vtol/build/vtol_tiltrotor_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake /home/vtol/vtol/src/vtol_tiltrotor_description -DAMENT_CMAKE_SYMLINK_INSTALL=1 -DCMAKE_INSTALL_PREFIX=/home/vtol/vtol/install/vtol_tiltrotor_description
+Invoking command in '/home/vtol/vtol/build/vtol_tiltrotor_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/vtol/vtol/build/vtol_tiltrotor_description -- -j8 -l8
+Invoked command in '/home/vtol/vtol/build/vtol_tiltrotor_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --build /home/vtol/vtol/build/vtol_tiltrotor_description -- -j8 -l8
+Invoking command in '/home/vtol/vtol/build/vtol_tiltrotor_description': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/vtol/vtol/build/vtol_tiltrotor_description
+Invoked command in '/home/vtol/vtol/build/vtol_tiltrotor_description' returned '0': CMAKE_PREFIX_PATH=/opt/ros/humble /usr/bin/cmake --install /home/vtol/vtol/build/vtol_tiltrotor_description

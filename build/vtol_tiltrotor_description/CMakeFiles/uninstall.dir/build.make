@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/ceres/uav/src/vtol_tiltrotor_description
+CMAKE_SOURCE_DIR = /home/vtol/vtol/src/vtol_tiltrotor_description
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/ceres/uav/build/vtol_tiltrotor_description
+CMAKE_BINARY_DIR = /home/vtol/vtol/build/vtol_tiltrotor_description
 
 # Utility rule file for uninstall.
 
@@ -78,6 +78,6 @@ CMakeFiles/uninstall.dir/clean:
 .PHONY : CMakeFiles/uninstall.dir/clean
 
 CMakeFiles/uninstall.dir/depend:
-	cd /home/ceres/uav/build/vtol_tiltrotor_description && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/ceres/uav/src/vtol_tiltrotor_description /home/ceres/uav/src/vtol_tiltrotor_description /home/ceres/uav/build/vtol_tiltrotor_description /home/ceres/uav/build/vtol_tiltrotor_description /home/ceres/uav/build/vtol_tiltrotor_description/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
+	cd /home/vtol/vtol/build/vtol_tiltrotor_description && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/vtol/vtol/src/vtol_tiltrotor_description /home/vtol/vtol/src/vtol_tiltrotor_description /home/vtol/vtol/build/vtol_tiltrotor_description /home/vtol/vtol/build/vtol_tiltrotor_description /home/vtol/vtol/build/vtol_tiltrotor_description/CMakeFiles/uninstall.dir/DependInfo.cmake --color=$(COLOR)
 .PHONY : CMakeFiles/uninstall.dir/depend
 

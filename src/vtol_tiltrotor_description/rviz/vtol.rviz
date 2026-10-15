@@ -1,29 +1,45 @@
 Panels:
   - Class: rviz_common/Displays
+    Help Height: 70
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Status1
         - /RobotModel1
+        - /PointCloud21
+        - /PointCloud21/Topic1
       Splitter Ratio: 0.5
-    Tree Height: 700
+    Tree Height: 363
   - Class: rviz_common/Views
+    Expanded:
+      - /Current View1
     Name: Views
+    Splitter Ratio: 0.5
 Visualization Manager:
   Class: ""
   Displays:
-    - Class: rviz_default_plugins/Grid
-      Name: Grid
-      Enabled: true
+    - Alpha: 0.4000000059604645
       Cell Size: 5
-      Plane Cell Count: 40
+      Class: rviz_default_plugins/Grid
       Color: 120; 130; 120
-      Alpha: 0.4
+      Enabled: true
       Line Style:
-        Line Width: 0.03
+        Line Width: 0.029999999329447746
         Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 40
       Reference Frame: <Fixed Frame>
+      Value: true
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
+      Collision Enabled: false
+      Description File: ""
       Description Source: Topic
       Description Topic:
         Depth: 5
@@ -32,65 +48,327 @@ Visualization Manager:
         Reliability Policy: Reliable
         Value: /robot_description
       Enabled: true
-      Name: RobotModel
-      Visual Enabled: true
-      Collision Enabled: false
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        aileron_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        aileron_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        depth_camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        fboom_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        fboom_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        gps_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        nacelle_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        nacelle_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_pylon:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rear_seat:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rotor_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rotor_rear:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rotor_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ruddervator_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ruddervator_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        skid_a_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        skid_a_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        skid_f_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        skid_f_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tail_boom_mass:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        tip_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        tip_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        vtail_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        vtail_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wing_left:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        wing_right:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
       Mass Properties:
         Inertia: false
         Mass: false
+      Name: RobotModel
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
     - Class: rviz_default_plugins/TF
-      Name: TF
       Enabled: false
-      Marker Scale: 0.3
+      Frame Timeout: 15
+      Frames:
+        All Enabled: true
+      Marker Scale: 0.30000001192092896
+      Name: TF
       Show Arrows: false
       Show Axes: true
       Show Names: false
-    - Class: rviz_default_plugins/Odometry
+      Tree:
+        {}
+      Update Interval: 0
+      Value: false
+    - Angle Tolerance: 0.5
+      Class: rviz_default_plugins/Odometry
+      Covariance:
+        Orientation:
+          Alpha: 0.5
+          Color: 255; 255; 127
+          Color Style: Unique
+          Frame: Local
+          Offset: 1
+          Scale: 1
+          Value: true
+        Position:
+          Alpha: 0.30000001192092896
+          Color: 204; 51; 204
+          Scale: 1
+          Value: true
+        Value: false
       Enabled: true
-      Name: Odometry
-      Topic:
-        Depth: 100
-        Durability Policy: Volatile
-        History Policy: Keep Last
-        Reliability Policy: Best Effort
-        Value: /vtol/odom
       Keep: 400
+      Name: Odometry
       Position Tolerance: 1.5
-      Angle Tolerance: 0.5
       Shape:
-        Alpha: 0.7
+        Alpha: 0.699999988079071
+        Axes Length: 1
+        Axes Radius: 0.10000000149011612
         Color: 255; 120; 0
         Head Length: 0.5
         Head Radius: 0.25
-        Shaft Length: 1.2
-        Shaft Radius: 0.1
+        Shaft Length: 1.2000000476837158
+        Shaft Radius: 0.10000000149011612
         Value: Arrow
-      Covariance:
-        Value: false
+      Topic:
+        Depth: 100
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /vtol/odom
+      Value: true
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 4.7713518142700195e-05
+        Min Value: 3.483891487121582e-05
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz_default_plugins/PointCloud2
+      Color: 255; 255; 255
+      Color Transformer: AxisColor
+      Decay Time: 0
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.009999999776482582
+      Style: Points
+      Topic:
+        Depth: 5
+        Durability Policy: Volatile
+        Filter size: 10
+        History Policy: Keep Last
+        Reliability Policy: Best Effort
+        Value: /vtol/depth_camera/points
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 110; 130; 155
     Fixed Frame: world
     Frame Rate: 30
+  Name: root
   Tools:
     - Class: rviz_default_plugins/MoveCamera
+  Transformation:
+    Current:
+      Class: rviz_default_plugins/TF
+  Value: true
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
       Distance: 6
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
       Focal Point:
         X: 0
         Y: 0
-        Z: 0.2
+        Z: 0.20000000298023224
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
+      Invert Z Axis: false
       Name: Current View
-      Pitch: 0.35
-      Yaw: 2.4
+      Near Clip Distance: 0.009999999776482582
+      Pitch: 0.2999999225139618
       Target Frame: base_link
-    Saved: ~
+      Value: Orbit (rviz_default_plugins)
+      Yaw: 1.3700010776519775
+    Saved:
+      - Class: rviz_default_plugins/Orbit
+        Distance: 6
+        Enable Stereo Rendering:
+          Stereo Eye Separation: 0.05999999865889549
+          Stereo Focal Distance: 1
+          Swap Stereo Eyes: false
+          Value: false
+        Focal Point:
+          X: 0
+          Y: 0
+          Z: 0.20000000298023224
+        Focal Shape Fixed Size: true
+        Focal Shape Size: 0.05000000074505806
+        Invert Z Axis: false
+        Name: Orbit
+        Near Clip Distance: 0.009999999776482582
+        Pitch: 0.2999999225139618
+        Target Frame: base_link
+        Value: Orbit (rviz_default_plugins)
+        Yaw: 1.3700010776519775
+      - Class: rviz_default_plugins/Orbit
+        Distance: 6
+        Enable Stereo Rendering:
+          Stereo Eye Separation: 0.05999999865889549
+          Stereo Focal Distance: 1
+          Swap Stereo Eyes: false
+          Value: false
+        Focal Point:
+          X: 0
+          Y: 0
+          Z: 0.20000000298023224
+        Focal Shape Fixed Size: true
+        Focal Shape Size: 0.05000000074505806
+        Invert Z Axis: false
+        Name: Orbit
+        Near Clip Distance: 0.009999999776482582
+        Pitch: 0.2999999225139618
+        Target Frame: base_link
+        Value: Orbit (rviz_default_plugins)
+        Yaw: 1.3700010776519775
 Window Geometry:
-  Height: 900
-  Width: 1400
   Displays:
     collapsed: false
+  Height: 900
+  Hide Left Dock: false
+  Hide Right Dock: false
+  QMainWindow State: 000000ff00000000fd00000001000000000000019b0000032efc0200000002fb000000100044006900730070006c006100790073010000003b000001ec000000c700fffffffb0000000a00560069006500770073010000022d0000013c000000a000ffffff000003d70000032e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
+  Width: 1400
+  X: 394
+  Y: -19
